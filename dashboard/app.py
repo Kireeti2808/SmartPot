@@ -1,6 +1,10 @@
 import streamlit as st
 import pandas as pd
 import pickle
+import sys
+import os
+sys.path.append(os.path.abspath("..")) 
+
 from parser import parse_log_line
 
 st.set_page_config(page_title="SmartPot Dashboard", layout="centered")
