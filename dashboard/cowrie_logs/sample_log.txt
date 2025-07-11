@@ -1,0 +1,3 @@
+2025-07-11 10:15:23+0000 [SSHService ssh-userauth on HoneyPotTransport,4,192.168.0.5] login attempt [root/123456] failed
+2025-07-11 10:17:45+0000 [SSHService ssh-userauth on HoneyPotTransport,5,192.168.0.8] login attempt [admin/admin] failed
+2025-07-11 10:19:02+0000 [SSHService ssh-userauth on HoneyPotTransport,6,192.168.0.5] login attempt [admin/password] succeeded
