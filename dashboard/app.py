@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import joblib
-from parser import parse_log_line           
+from cowrie_logs.parser import parse_log_line          
 from extract_features import extract_features_from_logs
 
 # Streamlit page setup
