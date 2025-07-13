@@ -1,15 +1,15 @@
-import json
+import re
 
 def parse_log_line(line):
-    try:
-        log = json.loads(line)
-        if log.get("eventid") in ["cowrie.login.failed", "cowrie.login.success"]:
-            return {
-                "timestamp": log.get("timestamp", "")[:19].replace("T", " "),
-                "src_ip": log.get("src_ip", "0.0.0.0"),
-                "username": log.get("username", "unknown"),
-                "password": log.get("password", "unknown"),
-                "status": "succeeded" if log["eventid"] == "cowrie.login.success" else "failed"
-            }
-    except json.JSONDecodeError:
-        return None
+    pattern = r'(\d+-\d+-\d+ \d+:\d+:\d+)\+\d+ \[.*?,\d+,(\d+\.\d+\.\d+\.\d+)\] login attempt \[(.+?)\/(.+?)\] (failed|succeeded)'
+    match = re.search(pattern, line)
+    if match:
+        timestamp, src_ip, username, password, status = match.groups()
+        return {
+            "timestamp": timestamp,
+            "src_ip": src_ip,
+            "username": username,
+            "password": password,
+            "status": status
+        }
+    return None
