@@ -1,32 +1,26 @@
-# 🧠 SmartPot
+## 🧠 SmartPot
 
-This project combines a honeypot trap with machine learning to detect and analyze suspicious login attempts. Built using Cowrie (SSH honeypot), Scikit-learn, and Streamlit.
+SmartPot is an AI-driven SSH honeypot analysis dashboard that detects and classifies login attempts using machine learning.
+
+Built with:
+- 🐍 Python (Scikit-learn)
+- 🔐 Cowrie honeypot logs
+- 📊 Streamlit interface
+
+---
 
 ## 📁 Modules
 
 - `parser.py` – Extracts metadata from Cowrie logs
-- `extract_features.py` – Prepares login features for ML
-- `train_model.py` – Trains a classifier to detect attacks
-- `dashboard/app.py` – Streamlit dashboard for live predictions
+- `extract_features.py` – Transforms logs into ML features
+- `train_model.py` – Trains and saves classification model
+- `app.py` – Streamlit dashboard for uploading and detecting attacks
+
+---
 
 ## 🚀 How to Run
 
-1. Clone the repo and navigate into it.
-2. Set up a virtual environment:
-    ```bash
-    python3 -m venv cowrie-env
-    source cowrie-env/bin/activate
-    pip install -r requirements.txt
-    ```
-3. Train the model:
-    ```bash
-    python train_model.py
-    ```
-4. Launch dashboard:
-    ```bash
-    cd dashboard
-    streamlit run app.py
-    ```
-
-## 🛡️ Sample Log Input Format
-
+1. **Clone the repository**:
+   ```bash
+   git clone <your-repo-url>
+   cd AI-HONEYPOT-FRAMEWORK

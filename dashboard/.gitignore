@@ -1,6 +1,8 @@
 __pycache__/
 *.pyc
 *.pkl
+*.log
 .env/
 cowrie-env/
 .vscode/
+.DS_Store
