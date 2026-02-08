@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 import pickle
 
-# Extract features and train
+# Extract features
 features = extract_features('dashboard/cowrie_logs/sample_log.txt')
 df = pd.DataFrame(features)
 
@@ -13,17 +13,14 @@ y = df['status']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-clf = RandomForestClassifier()
+clf = RandomForestClassifier(random_state=42)
 clf.fit(X_train, y_train)
 
+# 🔴 SAVE BOTH MODEL AND FEATURE COLUMNS
 with open('dashboard/cowrie_logs/honeypot_model.pkl', 'wb') as f:
-    pickle.dump(clf, f)
+    pickle.dump({
+        "model": clf,
+        "columns": X.columns.tolist()
+    }, f)
 
-print("✅ Model trained and saved as honeypot_model.pkl")
-
-
-# ✅ ADD THIS:
-def load_model(model_path):
-    with open(model_path, 'rb') as f:
-        model = pickle.load(f)
-    return model
+print("✅ Model + feature columns saved")
