@@ -1,40 +1,87 @@
 import streamlit as st
 import pandas as pd
-import joblib
+import pickle
+
 from dashboard.cowrie_logs.parser import parse_log_line
 from dashboard.cowrie_logs.extract_features import extract_features_from_df
-from dashboard.cowrie_logs.train_model import load_model
 
-# Load the trained model
-model = load_model('dashboard/cowrie_logs/honeypot_model.pkl')
+# ===============================
+# Load trained model + columns
+# ===============================
+with open("dashboard/cowrie_logs/honeypot_model.pkl", "rb") as f:
+    saved = pickle.load(f)
 
+model = saved["model"]
+trained_columns = saved["columns"]
+
+# ===============================
+# Streamlit UI
+# ===============================
 st.set_page_config(page_title="SmartPot", layout="wide")
 st.title("🛡️ SmartPot Dashboard")
 
-uploaded_file = st.file_uploader("Upload Cowrie Log File", type=["log", "txt"])
+uploaded_file = st.file_uploader(
+    "Upload Cowrie Log File",
+    type=["log", "txt"]
+)
 
 if uploaded_file is not None:
     st.success("✅ Log file uploaded successfully!")
 
-    # Decode and clean lines
+    # ===============================
+    # Read & decode log lines
+    # ===============================
     log_lines = uploaded_file.readlines()
-    log_lines = [line.decode("utf-8") for line in log_lines]
+    log_lines = [line.decode("utf-8").strip() for line in log_lines]
 
-    # Parse lines
-    parsed_data = [parse_log_line(line) for line in log_lines if parse_log_line(line)]
+    # ===============================
+    # Parse log lines
+    # ===============================
+    parsed_data = []
+    for line in log_lines:
+        parsed = parse_log_line(line)
+        if parsed:
+            parsed_data.append(parsed)
 
-    if parsed_data:
-        df = pd.DataFrame(parsed_data)
-        st.subheader("📄 Parsed Log Data")
-        st.dataframe(df, use_container_width=True)
-
-        st.subheader("🔍 Feature Extraction and Prediction")
-        features = extract_features_from_df(df)
-        predictions = model.predict(features)
-
-        df['Attack Type'] = ['Malicious' if pred == 1 else 'Failed Attempt' for pred in predictions]
-        st.dataframe(df[['timestamp', 'src_ip', 'username', 'Attack Type']], use_container_width=True)
-
-        st.success("✅ Attack classification completed.")
-    else:
+    if not parsed_data:
         st.warning("⚠️ No valid log entries parsed from the uploaded file.")
+        st.stop()
+
+    # ===============================
+    # Display parsed logs
+    # ===============================
+    df = pd.DataFrame(parsed_data)
+    st.subheader("📄 Parsed Log Data")
+    st.dataframe(df, use_container_width=True)
+
+    # ===============================
+    # Feature Extraction
+    # ===============================
+    st.subheader("🔍 Feature Extraction and Prediction")
+
+    # Extract categorical features
+    X = pd.get_dummies(df[['src_ip', 'username']])
+
+    # 🔴 CRITICAL FIX: align with training columns
+    X = X.reindex(columns=trained_columns, fill_value=0)
+
+    # ===============================
+    # Prediction
+    # ===============================
+    predictions = model.predict(X)
+
+    # ===============================
+    # Attach results
+    # ===============================
+    df["Attack Type"] = [
+        "Malicious Login" if pred == "succeeded" else "Failed Attempt"
+        for pred in predictions
+    ]
+
+    st.subheader("🚨 Attack Classification Results")
+    st.dataframe(
+        df[['timestamp', 'src_ip', 'username', 'Attack Type']],
+        use_container_width=True
+    )
+
+    st.success("✅ Attack classification completed successfully.")
