@@ -68,20 +68,27 @@ if uploaded_file is not None:
     # ===============================
     # Prediction
     # ===============================
-    predictions = model.predict(X)
-
     # ===============================
-    # Attach results
-    # ===============================
-    df["Attack Type"] = [
-        "Malicious Login" if pred == "succeeded" else "Failed Attempt"
-        for pred in predictions
-    ]
+# IP-level Attack Aggregation
+# ===============================
+st.subheader("🧠 IP-level Attack Detection")
 
-    st.subheader("🚨 Attack Classification Results")
-    st.dataframe(
-        df[['timestamp', 'src_ip', 'username', 'Attack Type']],
-        use_container_width=True
+attack_summary = (
+    df.groupby("src_ip")
+    .agg(
+        total_attempts=("status", "count"),
+        failed_attempts=("status", lambda x: (x == "failed").sum()),
+        unique_users=("username", "nunique")
     )
+    .reset_index()
+)
 
-    st.success("✅ Attack classification completed successfully.")
+attack_summary["Attack Type"] = attack_summary.apply(
+    lambda row: "Brute Force Attack"
+    if row["failed_attempts"] >= 3 and row["unique_users"] >= 2
+    else "Low Risk Activity",
+    axis=1
+)
+
+st.dataframe(attack_summary, use_container_width=True)
+
