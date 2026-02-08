@@ -59,36 +59,41 @@ if uploaded_file is not None:
     # ===============================
     st.subheader("🔍 Feature Extraction and Prediction")
 
-    # Extract categorical features
     X = pd.get_dummies(df[['src_ip', 'username']])
-
-    # 🔴 CRITICAL FIX: align with training columns
     X = X.reindex(columns=trained_columns, fill_value=0)
 
-    # ===============================
-    # Prediction
-    # ===============================
-    # ===============================
-# IP-level Attack Aggregation
-# ===============================
-st.subheader("🧠 IP-level Attack Detection")
+    predictions = model.predict(X)
 
-attack_summary = (
-    df.groupby("src_ip")
-    .agg(
-        total_attempts=("status", "count"),
-        failed_attempts=("status", lambda x: (x == "failed").sum()),
-        unique_users=("username", "nunique")
+    df["Login Outcome"] = predictions
+
+    st.subheader("🚨 Login Outcome Classification")
+    st.dataframe(
+        df[['timestamp', 'src_ip', 'username', 'Login Outcome']],
+        use_container_width=True
     )
-    .reset_index()
-)
 
-attack_summary["Attack Type"] = attack_summary.apply(
-    lambda row: "Brute Force Attack"
-    if row["failed_attempts"] >= 3 and row["unique_users"] >= 2
-    else "Low Risk Activity",
-    axis=1
-)
+    # ===============================
+    # IP-level Attack Aggregation
+    # ===============================
+    st.subheader("🧠 IP-level Attack Detection")
 
-st.dataframe(attack_summary, use_container_width=True)
+    attack_summary = (
+        df.groupby("src_ip")
+        .agg(
+            total_attempts=("status", "count"),
+            failed_attempts=("status", lambda x: (x == "failed").sum()),
+            unique_users=("username", "nunique")
+        )
+        .reset_index()
+    )
 
+    attack_summary["Attack Type"] = attack_summary.apply(
+        lambda row: "Brute Force Attack"
+        if row["failed_attempts"] >= 3 and row["unique_users"] >= 2
+        else "Low Risk Activity",
+        axis=1
+    )
+
+    st.dataframe(attack_summary, use_container_width=True)
+
+    st.success("✅ Attack classification completed successfully.")
